@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Occhiali</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Simulatore di occhiali per visualizzare gli effetti della miopia e del colore delle lenti">
+    <meta name="theme-color" content="#3498db">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            text-align: center;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        canvas {
+            border: 2px solid black;
+            margin: 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: block;
+            max-width: 100%;
+        }
+        
+        .controls {
+            margin: 10px auto 15px;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .instructions {
+            text-align: center;
+            margin: 0 auto;
+            padding: 20px;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .instructions h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: calc(1.2rem + 1vw);
+        }
+        
+        .instructions h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: calc(0.9rem + 0.5vw);
+            color: #3498db;
+            margin-top: 5px;
+        }
+        
+        .instructions p {
+            font-size: calc(0.9rem + 0.3vw);
+            line-height: 1.6;
+            color: #34495e;
+            margin: 10px 0;
+        }
+        
+        .project-info {
+            font-size: calc(0.7rem + 0.2vw);
+            color: #7f8c8d;
+            margin: 20px 0;
+            line-height: 1.4;
+        }
+        
+        .game-header {
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .game-credits {
+            font-size: 10px;
+            color: #7f8c8d;
+            margin: 0 0 5px 0;
+            line-height: 1.2;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .intro-image {
+            max-width: 60%;
+            height: auto;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: block;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            font-family: 'Montserrat', sans-serif;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .range-container {
+            position: relative;
+            width: 250px;
+            margin: 0 auto;
+            padding: 10px 0;
+        }
+        
+        .range-ticks {
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .range-ticks span {
+            display: inline-block;
+            font-size: 10px;
+            color: #666;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            background: #ffffff;
+            outline: none;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #3498db;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            border: 2px solid white;
+        }
+        
+        input[type="color"] {
+            width: 50px;
+            height: 30px;
+            vertical-align: middle;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+        }
+        
+        label {
+            font-weight: 600;
+            margin-right: 10px;
+            display: inline-block;
+            min-width: 80px;
+        }
+        
+        .game-instructions {
+            font-size: 12px;
+            color: #777;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .blurValue {
+            font-weight: bold;
+            color: #3498db;
+            display: inline-block;
+            width: 50px;
+            text-align: right;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .color-selector {
+            margin-top: 10px;
+        }
+
+        .install-prompt {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px auto;
+            max-width: 500px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .intro-image {
+                max-width: 80%;
+            }
+            
+            .instructions {
+                padding: 15px;
+            }
+            
+            .range-container {
+                width: 200px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .controls {
+                padding: 10px;
+            }
+            
+            .intro-image {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="installPrompt" class="install-prompt">
+        Aggiungi questa app alla schermata Home per un'esperienza migliore!
+        <button id="installButton">Installa</button>
+    </div>
+
+    <div class="instructions" id="introScreen">
+        <h1>Istituto Statale Di Istruzione Superiore Fermi Eredia</h1>
+        <h2>Gioco creato da Nicolosi Salvatore Antonino e Prof. Ing. Giampiero Azzarelli</h2>
+        
+        <img src="img/occhiali-fermi.jpg" alt="Occhiali Fermi" class="intro-image">
+        
+        <p>Benvenuto nel simulatore di occhiali! In questo gioco, puoi regolare la miopia e il colore delle lenti per vedere come cambia la visione.</p>
+        
+        <button onclick="startGame()">Inizia il Gioco</button>
+        
+        <div class="project-info">
+            PNRR – LA SCUOLA FUTURA<br>
+            "STEM e Multilinguismo a scuola: learning by doing"<br>
+            Laboratorio co-curricolare<br>
+            "Pensiero Computazionale per Creare e Apprendere"<br>
+            Tutor: <strong><u>Prof.ssa Russo Simona</u></strong><br>
+            Docente Esperto Formatore: <strong><u>Ing. Azzarelli Giampiero</u></strong>
+        </div>
+    </div>
+
+    <div class="gameScreen hidden" id="gameScreen">
+        <h2 class="game-header">Simulatore di Occhiali - Nicolosi Salvatore Antonino</h2>
+        <div class="game-credits">
+            PNRR – LA SCUOLA FUTURA "STEM e Multilinguismo a scuola: learning by doing" Laboratorio co-curricolare "Pensiero Computazionale per Creare e Apprendere"<br>
+            Tutor: <strong>Prof.ssa Russo Simona</strong> Docente Esperto Formatore: <strong>Ing. Azzarelli Giampiero</strong>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="simCanvas" width="500" height="300"></canvas>
+            <canvas id="offscreenCanvas" width="500" height="300" style="display:none;"></canvas>
+        </div>
+        
+        <div class="controls">
+            <div>
+                <label for="blur">Miopia (D):</label>
+                <div class="range-container">
+                    <input type="range" id="blur" min="0" max="20" step="0.1" value="0">
+                    <div class="range-ticks">
+                        <span>0</span>
+                        <span>5</span>
+                        <span>10</span>
+                        <span>15</span>
+                        <span>20</span>
+                    </div>
+                </div>
+                <span id="blurValue" class="blurValue">0 D</span>
+            </div>
+            
+            <div class="color-selector">
+                <label for="tint">Colore Lenti:</label>
+                <input type="color" id="tint" value="#ffffff">
+            </div>
+        </div>
+        
+        <div class="game-instructions">
+            <p><strong>Istruzioni:</strong></p>
+            <p>1. Usa il cursore della miopia per simulare il grado di sfocatura della vista, regolando la barra da 0 a 20 diottrie.</p>
+            <p>2. Puoi anche cambiare il colore delle lenti selezionando una tinta dal selettore di colori.</p>
+            <p>3. Osserva come i diversi gradi di miopia e colori delle lenti influenzano la visione dell'immagine.</p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("simCanvas");
+        const ctx = canvas.getContext("2d");
+        
+        // Canvas nascosto per l'elaborazione
+        const offscreenCanvas = document.getElementById("offscreenCanvas");
+        const offscreenCtx = offscreenCanvas.getContext("2d");
+        
+        const img = new Image();
+        img.src = "img/immagine-ottica.png"; // Immagine specificata
+
+        const blurInput = document.getElementById("blur");
+        const blurValueLabel = document.getElementById("blurValue");
+        const tintInput = document.getElementById("tint");
+        
+        // Array di kernel per diverse intensità di sfocatura
+        const kernels = {
+            // Implementazione manuale del filtro di sfocatura (box blur)
+            createKernel: function(size) {
+                const kernel = [];
+                const side = Math.floor(size);
+                const total = side * side;
+                
+                for (let i = 0; i < side; i++) {
+                    kernel[i] = [];
+                    for (let j = 0; j < side; j++) {
+                        kernel[i][j] = 1 / total;
+                    }
+                }
+                
+                return kernel;
+            },
+            
+            // Applica il kernel ai pixel dell'immagine
+            applyKernel: function(pixels, kernel, width, height) {
+                const side = kernel.length;
+                const halfSide = Math.floor(side / 2);
+                const output = new ImageData(width, height);
+                const outputData = output.data;
+                
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        let r = 0, g = 0, b = 0, a = 0;
+                        
+                        // Applica il kernel
+                        for (let ky = 0; ky < side; ky++) {
+                            for (let kx = 0; kx < side; kx++) {
+                                const px = x + kx - halfSide;
+                                const py = y + ky - halfSide;
+                                
+                                // Gestisci i bordi
+                                if (px >= 0 && px < width && py >= 0 && py < height) {
+                                    const i = (py * width + px) * 4;
+                                    const weight = kernel[ky][kx];
+                                    
+                                    r += pixels.data[i] * weight;
+                                    g += pixels.data[i + 1] * weight;
+                                    b += pixels.data[i + 2] * weight;
+                                    a += pixels.data[i + 3] * weight;
+                                }
+                            }
+                        }
+                        
+                        const i = (y * width + x) * 4;
+                        outputData[i] = r;
+                        outputData[i + 1] = g;
+                        outputData[i + 2] = b;
+                        outputData[i + 3] = a;
+                    }
+                }
+                
+                return output;
+            }
+        };
+
+        // Assicurati che l'immagine sia caricata correttamente
+        img.onload = function() {
+            draw();
+        };
+
+        function draw() {
+            // Pulisce entrambi i canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            offscreenCtx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            
+            // Disegna l'immagine originale sul canvas fuori schermo
+            offscreenCtx.drawImage(img, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+            
+            // Applica gli effetti
+            applyEffects();
+        }
+
+        function applyEffects() {
+            // Ottieni i valori dei controlli
+            let blurValue = parseFloat(document.getElementById("blur").value);
+            let tintColor = document.getElementById("tint").value;
+            
+            // Scala di conversione da diottrie a dimensione del blur
+            // Questa scala può essere regolata in base alle esigenze
+            let blurSize = Math.min(Math.max(Math.ceil(blurValue * 1.5), 1), 50);
+            
+            if (blurValue === 0) {
+                // Se non c'è sfocatura, copia semplicemente l'immagine
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            } else {
+                // Ottieni i dati dell'immagine
+                const imgData = offscreenCtx.getImageData(0, 0, offscreenCanvas.width, offscreenCanvas.height);
+                
+                // Crea e applica un kernel di sfocatura appropriato
+                const kernel = kernels.createKernel(blurSize);
+                const blurredData = kernels.applyKernel(imgData, kernel, offscreenCanvas.width, offscreenCanvas.height);
+                
+                // Disegna l'immagine sfocata
+                ctx.putImageData(blurredData, 0, 0);
+            }
+
+            // Applica il filtro colore (tint)
+            ctx.fillStyle = tintColor + "55"; // 55 aggiunge trasparenza (33% circa)
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Funzione per aggiornare il valore della miopia (diottrie)
+        blurInput.addEventListener("input", function() {
+            blurValueLabel.textContent = blurInput.value + " D"; // Mostra il valore delle diottrie
+            draw(); // Ridisegna l'immagine con il nuovo effetto
+        });
+
+        // Funzione per aggiornare il colore delle lenti
+        tintInput.addEventListener("input", function() {
+            draw(); // Ridisegna l'immagine con il nuovo colore
+        });
+
+        // Funzione per avviare il gioco
+        function startGame() {
+            document.getElementById("introScreen").classList.add("hidden"); // Nasconde la schermata iniziale
+            document.getElementById("gameScreen").classList.remove("hidden"); // Mostra il simulatore
+            draw(); // Disegna l'immagine iniziale
+        }
+        
+        // Assicurati che l'interfaccia si adatti correttamente al ridimensionamento
+        window.addEventListener('resize', function() {
+            draw();
+        });
+
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('Service Worker registrato!'))
+                    .catch(err => console.log('Service Worker non registrato:', err));
+            });
+        }
+
+        // PWA Install Prompt - Versione migliorata
+        let deferredPrompt;
+        const installPrompt = document.getElementById('installPrompt');
+        const installButton = document.getElementById('installButton');
+
+        // Controlla se l'app è già installata
+        window.addEventListener('load', () => {
+            // Se l'app è in modalità standalone (già installata), nascondi il prompt
+            if (window.matchMedia('(display-mode: standalone)').matches || 
+                window.navigator.standalone === true) {
+                installPrompt.style.display = 'none';
+            } else {
+                // Se è già stata installata o rifiutata in precedenza, controlla lo storage
+                const appInstalled = localStorage.getItem('appInstalled');
+                if (appInstalled === 'true') {
+                    installPrompt.style.display = 'none';
+                } else {
+                    // Mostra automaticamente il prompt dopo 3 secondi se non è installata
+                    setTimeout(() => {
+                        installPrompt.style.display = 'block';
+                    }, 3000);
+                }
+            }
+        });
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Previeni il comportamento predefinito di Chrome
+            e.preventDefault();
+            // Salva l'evento per poterlo attivare più tardi
+            deferredPrompt = e;
+            // Mostra il prompt di installazione
+            installPrompt.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', () => {
+            // Nascondi il prompt di installazione
+            installPrompt.style.display = 'none';
+            
+            if (deferredPrompt) {
+                // Mostra il prompt di installazione
+                deferredPrompt.prompt();
+                // Attendi che l'utente risponda
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('Utente ha accettato l\'installazione');
+                        localStorage.setItem('appInstalled', 'true');
+                    } else {
+                        console.log('Utente ha rifiutato l\'installazione');
+                        // Memorizza la preferenza ma permetti di rivedere il prompt in futuro
+                        setTimeout(() => {
+                            localStorage.setItem('appInstalled', 'false');
+                        }, 1000 * 60 * 60 * 24); // 24 ore
+                    }
+                    deferredPrompt = null;
+                });
+            } else {
+                // Alternative manual installation instructions for iOS
+                if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+                    alert('Per installare: tocca l\'icona di condivisione nel tuo browser e poi "Aggiungi a schermata Home"');
+                }
+            }
+        });
+
+        // Aggiungi un listener per l'installazione appPrompt
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('App installata!');
+            localStorage.setItem('appInstalled', 'true');
+            installPrompt.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
